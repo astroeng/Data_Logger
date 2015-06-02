@@ -75,6 +75,7 @@ typedef struct
 {
   MessageKindType message_kind;   /* message type as defined above. */
   u_int_8         message_count;  /* sequence count for this message type. */
+  u_int_8         data_pad_aa;
   u_int_32        message_time;   /* milliSeconds since the last message. */
 
 } MessageHeaderType;
