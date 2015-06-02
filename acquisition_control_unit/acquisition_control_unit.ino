@@ -12,16 +12,20 @@
 */
 
 SoftwareSerialBuffer receiveBuffer(256);
-PrimitiveScheduler schedule;
 
 void setup()
 {
+  int i;
   Serial.begin(9600);
-
+  for (i = 0; i < 256; i++)
+  {
+    receiveBuffer.buffer[i] = 0;
+  }
   //Serial.println(sizeof(MessageHeaderType));
   //Serial.println(sizeof(SetupMessageType));
   //Serial.println(sizeof(DataMessageType));
   //Serial.println(sizeof(StateMessageType));
+
 }
 
 
@@ -39,35 +43,44 @@ void serialEvent()
   while (Serial.available() > 0 && receiveBuffer.hasSpace() > 0)
   {
     receiveBuffer.save(Serial.read());
+    delayMicroseconds(2000); 
+    
   }
   
   if (Setup_Message_Class(&receiveBuffer).isValid())
   {
-    Serial.println("setupMessage");
+    Serial.println ("setupMessage : ");
     receiveBuffer.purge(sizeof(SetupMessageType));
   }
   
-  if (Data_Message_Class(&receiveBuffer).isValid())
+  else if (Data_Message_Class(&receiveBuffer).isValid())
   {
     Serial.println("dataMessage");
     receiveBuffer.purge(sizeof(DataMessageType));
   }
 
-  if (Start_Message_Class(&receiveBuffer).isValid())
+  else if (Start_Message_Class(&receiveBuffer).isValid())
   {
     Serial.println("startMessage");
     receiveBuffer.purge(sizeof(StateMessageType));
   }  
 
-  if (Stop_Message_Class(&receiveBuffer).isValid())
+  else if (Stop_Message_Class(&receiveBuffer).isValid())
   {
     Serial.println("stopMessage");
     receiveBuffer.purge(sizeof(StateMessageType));
   }
 
-  if (Reset_Message_Class(&receiveBuffer).isValid())
+  else if (Reset_Message_Class(&receiveBuffer).isValid())
   {
     Serial.println("resetMessage");
+    receiveBuffer.purge(sizeof(StateMessageType));
+  }
+  
+  else
+  {
+    Serial.print("something");
+    Serial.println((char*)receiveBuffer.buffer);
     receiveBuffer.purge(sizeof(StateMessageType));
   }
 }
