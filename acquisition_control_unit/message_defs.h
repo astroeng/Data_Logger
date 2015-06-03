@@ -129,7 +129,7 @@ typedef struct
   u_int_16          analog_values[MAX_ANALOG];
   u_int_16          digital_values[MAX_DIGITAL];
 
-} DataMessageType; /* This should be 12 bytes */
+} DataMessageType; /* This should be 56 bytes */
 
 #define DATAMESSAGETYPE_SIZE 12
 
@@ -154,12 +154,12 @@ typedef struct
 {
   
   MessageHeaderType header;
+
   DevicePinType     analog_pin_assignments[MAX_ANALOG];
   DevicePinType     digital_pin_assignments[MAX_DIGITAL];
   PinOperationType  analog_pin_operations[MAX_ANALOG];
   PinOperationType  digital_pin_operations[MAX_DIGITAL];
-  //message_content_type pin_assignments;
-  //message_content_type pin_operations;
+
   u_int_16          message_interval;
   u_int_16          sample_interval;
   u_int_16          sample_filter_length;

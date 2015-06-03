@@ -13,7 +13,7 @@
 #define RECEIVE_BUFFER_SIZE 256
 #define SERIAL_RATE 9600
 #define SERIAL_WORD 10
-#define SERIAL_BYTE_USECONDS 1000000/SERIAL_RATE*SERIAL_WORD
+#define SERIAL_BYTE_USECONDS (1000000/SERIAL_RATE)*SERIAL_WORD
 
 enum {Initialize,
       Setup,
@@ -24,7 +24,7 @@ enum {Initialize,
 
 SoftwareSerialBuffer receiveBuffer(RECEIVE_BUFFER_SIZE);
 
-PrimitiveScheduler schedule;
+PrimitiveScheduler schedule(4);
 
 SetupMessageType pinSetupBuffer;
 DataMessageType pinStateBuffer;
@@ -43,30 +43,43 @@ void setup()
   
   Serial.begin(SERIAL_RATE);
   
-  memset(receiveBuffer.buffer,0,sizeof(receiveBuffer.buffer));
-  memset(&pinSetupBuffer,0,sizeof(pinSetupBuffer));
-  memset(&pinStateBuffer,0,sizeof(pinStateBuffer));
-  memset(&outputBuffer,0,sizeof(outputBuffer));
-  memset(&stateBuffer,0,sizeof(stateBuffer));
+  memset(receiveBuffer.buffer,0,RECEIVE_BUFFER_SIZE);
+  memset(&pinSetupBuffer,0,sizeof(SetupMessageType));
+  memset(&pinStateBuffer,0,sizeof(DataMessageType));
+  memset(&outputBuffer,0,sizeof(DataMessageType));
+  memset(&stateBuffer,0,sizeof(StateMessageType));
   
   deviceState = Initialize;
   lastMessageType = no_message;
   
   pinMode(13,OUTPUT);
   
-  schedule.addTask(sample_pins,125);
+  schedule.addTask(send_stats,1000);
+  schedule.addTask(sample_pins,1000);
   schedule.addTask(send_message,1000);
+
   
+  delay(2000);
+  
+  //Serial.println((int)SERIAL_BYTE_USECONDS);
+  //Serial.println(sizeof(receiveBuffer.buffer));
+  //Serial.println(sizeof(pinSetupBuffer));
+  //Serial.println(sizeof(pinStateBuffer));
+  //Serial.println(sizeof(outputBuffer));
+  //Serial.println(sizeof(stateBuffer));
+
 }
 
 
 void loop()
 {
+
   switch(deviceState)
   {
   case Initialize:
     if (lastMessageType == setup_message)
     {
+      Serial.println("Initialize -> Setup");
       digitalPins = new DigitalPins(&pinSetupBuffer);
       analogPins = new AnalogPins(&pinSetupBuffer);
       deviceState = Setup;
@@ -77,6 +90,7 @@ void loop()
   case Setup:
     if (lastMessageType == start_message)
     {
+      Serial.println("Setup -> Active");
       deviceState = Active;
     }
     break;
@@ -84,13 +98,17 @@ void loop()
   case Active:
     
     schedule.run();
+    delay(1);
+    //Serial.println("Active-Schedule");
     
     if (lastMessageType == stop_message)
     {
+      Serial.println("Start -> Waiting");
       deviceState = Waiting;
     }
     else if (lastMessageType == data_message)
     {
+      Serial.println("Update Pins");
       write_pins();
     }
     break;
@@ -98,6 +116,7 @@ void loop()
   case Waiting:
     if (lastMessageType == start_message)
     {
+      Serial.println("Waiting -> Start");
       deviceState = Active;
     }
     
@@ -106,6 +125,7 @@ void loop()
   default:
     break;
   }
+
 }
 
 
@@ -120,6 +140,7 @@ void serialEvent()
   while (Serial.available() > 0 && receiveBuffer.hasSpace() > 0)
   {
     
+    digitalWrite(13, HIGH);
     receiveBuffer.save(Serial.read());
     
     /* Delay the approximate amount of time that a serial word should take
@@ -132,7 +153,7 @@ void serialEvent()
       delayMicroseconds(SERIAL_BYTE_USECONDS + 100);
     }
   }
-  
+  digitalWrite(13, LOW);
   /* Check to see what kind of message was received. 
    */
   if (Setup_Message_Class(&receiveBuffer).isValid())
@@ -140,7 +161,7 @@ void serialEvent()
     Setup_Message_Class(&receiveBuffer).parseMessage(&pinSetupBuffer);
     lastMessageType = setup_message;
     
-    Serial.println ("setupMessage : ");
+    Serial.println ("setupMessage");
     receiveBuffer.purge(sizeof(SetupMessageType));
   }
   
@@ -179,14 +200,20 @@ void serialEvent()
   
   else
   {
-    
+    int looper;
     lastMessageType = no_message;
     
     /* Since the delay is used during the receipt of a message getting to
      * this part of the code should mean that an invalid message was
      * received and should be discarded.
      */
-    Serial.print("something");
+    Serial.print("ERROR:BadMessage-Header(bytes):");
+    for (looper = 0; looper < 8; looper++)
+    {
+      Serial.print((int)receiveBuffer.buffer[looper]);
+      Serial.print(":");
+    }
+    Serial.println();
     receiveBuffer.purge(sizeof(StateMessageType));
   }
 }
@@ -194,20 +221,35 @@ void serialEvent()
 /******************************************************************************
  */
 
-void sample_pins()
+static void sample_pins( void )
 {
+  Serial.print("S");
   digitalPins->sample();
   analogPins->sample();
 }
 
-void write_pins()
+static void write_pins( void )
 {
   digitalPins->write();
   analogPins->write();
 }
 
-void send_message()
+static void send_stats ( void )
 {
+  int i;
+  Serial.print("T");
+  for (i = 0; i < schedule.getTaskCount(); i++)
+  {
+    Serial.print(schedule.getTaskExecutionTime(i));
+    Serial.print(":");
+  }
+  Serial.println();
+}
+
+static void send_message( void )
+{
+  Serial.print("M");
+  
   outputBuffer.header.message_kind  = data_message;
   outputBuffer.header.message_count = 123;
   outputBuffer.header.data_pad_aa   = 0;
@@ -216,5 +258,5 @@ void send_message()
   digitalPins->readPins(&outputBuffer);
   analogPins->readPins(&outputBuffer);
   
-  Serial.write((const u_int_8*)&outputBuffer, sizeof(outputBuffer));
+  Serial.write((const u_int_8*)&outputBuffer, sizeof(DataMessageType));
 }

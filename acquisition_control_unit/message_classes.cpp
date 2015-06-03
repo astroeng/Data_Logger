@@ -1,25 +1,23 @@
 
 #include "message_classes.h"
 
-
-
-Setup_Message_Class::Setup_Message_Class(SoftwareSerialBuffer* buffer)
+Setup_Message_Class::Setup_Message_Class(SoftwareSerialBuffer* input)
 {
+
+  valid = false;
   /* Construct the header from the header bytes. Also, check to make sure 
    * the buffer contains enough information to actually be a setup message.
    * Then check to see if the header has the correct message kind in it.
    */
-  if ((buffer->usedSpace() > sizeof(MessageHeaderType)) && (buffer->usedSpace() >= sizeof(SetupMessageType)))
+  if ((input->usedSpace() > sizeof(MessageHeaderType)) && (input->usedSpace() >= sizeof(SetupMessageType)))
   {
     MessageHeaderType header;
-    memcpy(&header,buffer,sizeof(header));
+    memcpy(&header,input->buffer,sizeof(header));
     
-    valid = false;
-    
-    if (header.message_kind == start_message)
+    if (header.message_kind == setup_message)
     {
       valid = true;
-      this->buffer = buffer;
+      this->buffer = input;
     }
   }
 }
@@ -36,14 +34,30 @@ boolean Setup_Message_Class::isValid()
 
 /******************************************************************************/
 
-Data_Message_Class::Data_Message_Class(SoftwareSerialBuffer* buffer)
+Data_Message_Class::Data_Message_Class(SoftwareSerialBuffer* input)
 {
   valid = false;
-  if ((buffer->buffer[0] == start_message) && (buffer->usedSpace() >= sizeof(DataMessageType)))
+
+  /* Construct the header from the header bytes. Also, check to make sure 
+   * the buffer contains enough information to actually be a setup message.
+   * Then check to see if the header has the correct message kind in it.
+   */
+  if ((input->usedSpace() > sizeof(MessageHeaderType)) && (input->usedSpace() >= sizeof(DataMessageType)))
   {
-    valid = true;
+    MessageHeaderType header;
+    memcpy(&header,input->buffer,sizeof(header));
+    
+    if (header.message_kind == data_message)
+    {
+      valid = true;
+      this->buffer = input;
+    }
   }
-  
+}
+
+void Data_Message_Class::parseMessage(DataMessageType* messageBuffer)
+{
+  memcpy(messageBuffer,buffer->buffer,sizeof(DataMessageType));
 }
 
 boolean Data_Message_Class::isValid()
@@ -53,12 +67,25 @@ boolean Data_Message_Class::isValid()
 
 /******************************************************************************/
 
-Start_Message_Class::Start_Message_Class(SoftwareSerialBuffer* buffer)
+Start_Message_Class::Start_Message_Class(SoftwareSerialBuffer* input)
 {
   valid = false;
-  if ((buffer->buffer[0] == start_message) && (buffer->usedSpace() >= sizeof(StateMessageType)))
+
+  /* Construct the header from the header bytes. Also, check to make sure 
+   * the buffer contains enough information to actually be a setup message.
+   * Then check to see if the header has the correct message kind in it.
+   */
+  if ((input->usedSpace() >= sizeof(MessageHeaderType)) && (input->usedSpace() >= sizeof(StateMessageType)))
   {
-    valid = true;
+    
+    MessageHeaderType header;
+    memcpy(&header,input->buffer,sizeof(MessageHeaderType));
+    
+    if (header.message_kind == start_message)
+    {
+      valid = true;
+      this->buffer = input;
+    }
   }
   
 }
@@ -71,14 +98,25 @@ boolean Start_Message_Class::isValid()
 
 /******************************************************************************/
 
-Stop_Message_Class::Stop_Message_Class(SoftwareSerialBuffer* buffer)
+Stop_Message_Class::Stop_Message_Class(SoftwareSerialBuffer* input)
 {
   valid = false;
-  if ((buffer->buffer[0] == stop_message) && (buffer->usedSpace() >= sizeof(StateMessageType)))
+
+  /* Construct the header from the header bytes. Also, check to make sure 
+   * the buffer contains enough information to actually be a setup message.
+   * Then check to see if the header has the correct message kind in it.
+   */
+  if ((input->usedSpace() >= sizeof(MessageHeaderType)) && (input->usedSpace() >= sizeof(StateMessageType)))
   {
-    valid = true;
+    MessageHeaderType header;
+    memcpy(&header,input->buffer,sizeof(header));
+
+    if (header.message_kind == stop_message)
+    {
+      valid = true;
+      this->buffer = input;
+    }
   }
-  
 }
 
 boolean Stop_Message_Class::isValid()
@@ -89,13 +127,24 @@ boolean Stop_Message_Class::isValid()
 
 /******************************************************************************/
 
-Reset_Message_Class::Reset_Message_Class(SoftwareSerialBuffer* buffer)
+Reset_Message_Class::Reset_Message_Class(SoftwareSerialBuffer* input)
 {
   valid = false;
-  
-  if ((buffer->buffer[0] == reset_message) && (buffer->usedSpace() >= sizeof(StateMessageType)))
+
+  /* Construct the header from the header bytes. Also, check to make sure 
+   * the buffer contains enough information to actually be a setup message.
+   * Then check to see if the header has the correct message kind in it.
+   */
+  if ((input->usedSpace() >= sizeof(MessageHeaderType)) && (input->usedSpace() >= sizeof(StateMessageType)))
   {
-    valid = true;
+    MessageHeaderType header;
+    memcpy(&header,input->buffer,sizeof(header));
+    
+    if (header.message_kind == reset_message)
+    {
+      valid = true;
+      this->buffer = input;
+    }
   }
   
 }
@@ -104,8 +153,4 @@ boolean Reset_Message_Class::isValid()
 {
   return valid;
 }
-
-
-
-
 

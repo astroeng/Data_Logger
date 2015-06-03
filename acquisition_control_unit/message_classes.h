@@ -24,7 +24,7 @@ protected:
 class Setup_Message_Class : public Message_Class
 {
 public:
-  Setup_Message_Class(SoftwareSerialBuffer* buffer);
+  Setup_Message_Class(SoftwareSerialBuffer* input);
   void parseMessage(SetupMessageType* messageBuffer);
   boolean isValid();
 };
@@ -36,7 +36,8 @@ public:
 class Data_Message_Class : public Message_Class
 {
 public:
-  Data_Message_Class(SoftwareSerialBuffer* buffer);
+  Data_Message_Class(SoftwareSerialBuffer* input);
+  void parseMessage(DataMessageType* messageBuffer);
   boolean isValid();
 };
 
@@ -47,7 +48,7 @@ public:
 class Reset_Message_Class : public Message_Class
 {
 public: 
-  Reset_Message_Class(SoftwareSerialBuffer* buffer);
+  Reset_Message_Class(SoftwareSerialBuffer* input);
   boolean isValid();
 };
 
@@ -58,7 +59,7 @@ public:
 class Stop_Message_Class : public Message_Class
 {
 public: 
-  Stop_Message_Class(SoftwareSerialBuffer* buffer);
+  Stop_Message_Class(SoftwareSerialBuffer* input);
   boolean isValid();
 };
 
@@ -69,8 +70,7 @@ public:
 class Start_Message_Class : public Message_Class
 {
 public: 
-  Start_Message_Class(SoftwareSerialBuffer* buffer);
-  void parseMessage(SetupMessageType* messageBuffer);
+  Start_Message_Class(SoftwareSerialBuffer* input);
   boolean isValid();
 };
 

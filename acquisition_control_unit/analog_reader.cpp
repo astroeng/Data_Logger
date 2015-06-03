@@ -3,10 +3,10 @@
 #include "analog_reader.h"
 
 
-AnalogPins::AnalogPins(SetupMessageType* setupMessage) //:
-//DevicePins(setupMessage)
+AnalogPins::AnalogPins(SetupMessageType* setupMessage)
 {
   this->setupMessage = setupMessage;
+
   int i;
   for (i = 0; i < MAX_ANALOG; i++)
   {
