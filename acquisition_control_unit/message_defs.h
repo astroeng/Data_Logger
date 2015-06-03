@@ -1,3 +1,7 @@
+#ifndef MESSAGE_DEFS_H
+#define MESSAGE_DEFS_H
+
+#include <Arduino.h>
 #include "rep_types.h"
 
 #define MAX_ANALOG   8
@@ -13,6 +17,7 @@ typedef enum
   stop_message  = 3, /* A type of state message */
   reset_message = 4, /* A type of state message */
   error_message = 5,
+  no_message    = 6
   
 } MessageKindType;
 
@@ -32,6 +37,7 @@ typedef enum
   digital_in,       /* Available on all pins */
   digital_out,      /* Available on all pins */
   analog_in,        /* Only available on pin_Ax pins */
+  pulse_in,
   pwm_out           /* Only available on certain pins */
 } PinOperationType;
 
@@ -56,15 +62,15 @@ typedef enum
   pin_D13 = 13,
   pin_D14 = 14,
   pin_D15 = 15,
-  pin_A0  = 16,
-  pin_A1  = 17,
-  pin_A2  = 18,
-  pin_A3  = 19,
-  pin_A4  = 20,
-  pin_A5  = 21,
-  pin_A6  = 22,
-  pin_A7  = 23,
-  unused  = 24
+  pin_A0  = A0, //14
+  pin_A1  = A1, //15
+  pin_A2  = A2, //16
+  pin_A3  = A3, //17
+  pin_A4  = A4, //18
+  pin_A5  = A5, //19
+  pin_A6  = A6, //20
+  pin_A7  = A7, //21
+  unused  = 99
 } DevicePinType;
 
 
@@ -75,22 +81,22 @@ typedef struct
 {
   MessageKindType message_kind;   /* message type as defined above. */
   u_int_8         message_count;  /* sequence count for this message type. */
-  u_int_8         data_pad_aa;
+  u_int_8         data_pad_aa;    /* needed to play nice with architectures larger than 8 bit */
   u_int_32        message_time;   /* milliSeconds since the last message. */
 
-} MessageHeaderType;
+} MessageHeaderType; /* This should be 8 bytes */
 
+#define MESSAGEHEADERTYPE_SIZE 8
 
 /* State Message Type
  * This message will just be a header and is intened to update the state of the "aquisition unit"
  */
 typedef struct
 {
-  
-  MessageHeaderType header; 
+  MessageHeaderType header;
+} StateMessageType; /* This should be 8 bytes */
 
-} StateMessageType;
-
+#define STATEMESSAGETYPE_SIZE 8
 
 /* Data Message Type
  * This message can be sent between the "aquisition unit" and the "data server".
@@ -123,8 +129,9 @@ typedef struct
   u_int_16          analog_values[MAX_ANALOG];
   u_int_16          digital_values[MAX_DIGITAL];
 
-} DataMessageType;
+} DataMessageType; /* This should be 12 bytes */
 
+#define DATAMESSAGETYPE_SIZE 12
 
 /* Setup Message Type
  * This message will be set between the "data server" and the "aquisition unit". Generally speaking the [message_interval]
@@ -157,5 +164,8 @@ typedef struct
   u_int_16          sample_interval;
   u_int_16          sample_filter_length;
   
-} SetupMessageType;
+} SetupMessageType; /* This should be 110 bytes */
 
+#define SETUPMESSAGETYPE_SIZE 110
+
+#endif

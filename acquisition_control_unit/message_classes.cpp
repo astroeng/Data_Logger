@@ -1,16 +1,32 @@
 
 #include "message_classes.h"
-#include "message_defs.h"
+
 
 
 Setup_Message_Class::Setup_Message_Class(SoftwareSerialBuffer* buffer)
 {
-  valid = false;
-  if ((buffer->buffer[0] == start_message) && (buffer->usedSpace() >= sizeof(SetupMessageType)))
+  /* Construct the header from the header bytes. Also, check to make sure 
+   * the buffer contains enough information to actually be a setup message.
+   * Then check to see if the header has the correct message kind in it.
+   */
+  if ((buffer->usedSpace() > sizeof(MessageHeaderType)) && (buffer->usedSpace() >= sizeof(SetupMessageType)))
   {
-    valid = true;
+    MessageHeaderType header;
+    memcpy(&header,buffer,sizeof(header));
+    
+    valid = false;
+    
+    if (header.message_kind == start_message)
+    {
+      valid = true;
+      this->buffer = buffer;
+    }
   }
-  
+}
+
+void Setup_Message_Class::parseMessage(SetupMessageType* messageBuffer)
+{
+  memcpy(messageBuffer,buffer->buffer,sizeof(SetupMessageType));
 }
 
 boolean Setup_Message_Class::isValid()
