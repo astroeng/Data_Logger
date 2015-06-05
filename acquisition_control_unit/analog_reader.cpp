@@ -1,14 +1,23 @@
-
+/*************************************************************
+ * Derek Schacht
+ * 2015/06/04
+ *
+ * *** Use Statement and License ***
+ * Free for non commercial use! Anything else is not authorized without consent.
+ *  Contact [dschacht ( - at - ) gmail ( - dot - ) com] for use questions.
+ *************************************************************
+ */
 
 #include "analog_reader.h"
 
 
-AnalogPins::AnalogPins(SetupMessageType* setupMessage)
+AnalogPins::AnalogPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
 {
-  this->setupMessage = setupMessage;
+  this->setupMessage = inputMessage;
+  this->pinCount = desiredPinCount;
 
   int i;
-  for (i = 0; i < MAX_ANALOG; i++)
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->analog_pin_operations[i] == digital_in)
     {
@@ -22,22 +31,21 @@ AnalogPins::AnalogPins(SetupMessageType* setupMessage)
     {
       pinMode(setupMessage->analog_pin_assignments[i], OUTPUT);
     }
-    
   }
 }
 
 void AnalogPins::sample()
 {
   int i;
-  for (i = 0; i < MAX_ANALOG; i++)
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->analog_pin_operations[i] == digital_in)
     {
-      analogValues[i] = digitalRead(setupMessage->analog_pin_assignments[i]);
+      values[i] = digitalRead(setupMessage->analog_pin_assignments[i]);
     }
     else if (setupMessage->analog_pin_operations[i] == analog_in)
     {
-      analogValues[i] = analogRead(setupMessage->analog_pin_assignments[i]);
+      values[i] = analogRead(setupMessage->analog_pin_assignments[i]);
     }
   }
 }
@@ -45,22 +53,22 @@ void AnalogPins::sample()
 void AnalogPins::write()
 {
   int i;
-  for (i = 0; i < MAX_ANALOG; i++)
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->analog_pin_operations[i] == digital_out)
     {
-      digitalWrite(setupMessage->analog_pin_assignments[i],analogOutputs[i]);
+      digitalWrite(setupMessage->analog_pin_assignments[i],outputs[i]);
     }
   }
 }
 
 void AnalogPins::readPins(DataMessageType* outputBuffer)
 {
-  memcpy(outputBuffer->analog_values,analogValues,sizeof(analogValues));
+  memcpy(outputBuffer->analog_values, values, sizeof(values));
 }
 
 void AnalogPins::writePins(DataMessageType* inputBuffer)
 {
-  memcpy(analogOutputs,inputBuffer->analog_values,sizeof(analogOutputs));
+  memcpy(outputs, inputBuffer->analog_values, sizeof(outputs));
 }
 

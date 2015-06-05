@@ -1,14 +1,30 @@
-
+/*************************************************************
+ * Derek Schacht
+ * 2015/06/04
+ *
+ * *** Use Statement and License ***
+ * Free for non commercial use! Anything else is not authorized without consent.
+ *  Contact [dschacht ( - at - ) gmail ( - dot - ) com] for use questions.
+ *************************************************************
+ */
 
 #include "digital_reader.h"
 
 
-DigitalPins::DigitalPins(SetupMessageType* setupMessage) // :
-//DevicePins(setupMessage)
+DigitalPins::DigitalPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
 {
-  this->setupMessage = setupMessage;
+  this->setupMessage = inputMessage;
+  this->pinCount = desiredPinCount;
+  
+  outputs = new u_int_16[pinCount];
+  values = new u_int_16[pinCount];
+  
+  memset(outputs,0,sizeof(outputs));
+  memset(values,0,sizeof(values));
+  
   int i;
-  for (i = 0; i < MAX_DIGITAL; i++)
+  
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->digital_pin_operations[i] == digital_in)
     {
@@ -33,15 +49,15 @@ DigitalPins::DigitalPins(SetupMessageType* setupMessage) // :
 void DigitalPins::sample()
 {
   int i;
-  for (i = 0; i < MAX_DIGITAL; i++)
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->digital_pin_operations[i] == digital_in)
     {
-      digitalValues[i] = digitalRead(setupMessage->digital_pin_assignments[i]);
+      values[i] = digitalRead(setupMessage->digital_pin_assignments[i]);
     }
     else if (setupMessage->digital_pin_operations[i] == pulse_in)
     {
-      digitalValues[i] = pulseIn(setupMessage->digital_pin_assignments[i], HIGH);
+      values[i] = pulseIn(setupMessage->digital_pin_assignments[i], HIGH);
     }
   }
 }
@@ -49,26 +65,26 @@ void DigitalPins::sample()
 void DigitalPins::write()
 {
   int i;
-  for (i = 0; i < MAX_DIGITAL; i++)
+  for (i = 0; i < pinCount; i++)
   {
     if (setupMessage->digital_pin_operations[i] == digital_out)
     {
-      digitalWrite(setupMessage->digital_pin_assignments[i],digitalOutputs[i]);
+      digitalWrite(setupMessage->digital_pin_assignments[i],outputs[i]);
     }
     else if (setupMessage->digital_pin_operations[i] == pwm_out)
     {
-      analogWrite(setupMessage->digital_pin_assignments[i],digitalOutputs[i]);
+      analogWrite(setupMessage->digital_pin_assignments[i],outputs[i]);
     }
   }
 }
 
 void DigitalPins::readPins(DataMessageType* outputBuffer)
 {
-  memcpy(outputBuffer->digital_values,digitalValues,sizeof(digitalValues));
+  memcpy(outputBuffer->digital_values, values, sizeof(values));
 }
 
 void DigitalPins::writePins(DataMessageType* inputBuffer)
 {
-  memcpy(digitalOutputs,inputBuffer->digital_values,sizeof(digitalOutputs));
+  memcpy(outputs, inputBuffer->digital_values, sizeof(outputs));
 }
 
