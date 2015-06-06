@@ -98,14 +98,14 @@ void setup()
    * be used to help debug execution.
    */ 
   DEBUG_LINE(pinMode(13,OUTPUT));
-  DEBUG_LINE(activeSchedule.addTask(send_stats,10000));
+  DEBUG_LINE(activeSchedule.addTask(send_stats, 10000));
 
   /* Add the tasks that will be used during the active state.
    * TODO: Add the time information from the setup message.
    *       Instead of it being hard coded.
    */
-  activeSchedule.addTask(sample_pins,100);
-  activeSchedule.addTask(send_message,1000);
+  activeSchedule.addTask(sample_pins,   100);
+  activeSchedule.addTask(send_message, 1000);
 
   /* This is here to prevent a runaway start if the serial port
    * is being written to immediatly. Sometimes if the serial port

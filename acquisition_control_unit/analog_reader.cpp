@@ -9,6 +9,7 @@
  */
 
 #include "analog_reader.h"
+#include <Arduino.h>
 
 
 AnalogPins::AnalogPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
@@ -18,6 +19,9 @@ AnalogPins::AnalogPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
   
   values = new u_int_16[desiredPinCount];
   outputs = new u_int_16[desiredPinCount];
+  
+  memset(values,0,sizeof(u_int_16)*desiredPinCount);
+  memset(outputs,0,sizeof(u_int_16)*desiredPinCount);
 
   int i;
   for (i = 0; i < pinCount; i++)

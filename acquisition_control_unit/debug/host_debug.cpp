@@ -33,7 +33,7 @@ SerialPortClass::SerialPortClass(int serial_buffer_size)
 
 int SerialPortClass::openPort(const char* device)
 {
-  serial_port = open(device, O_RDWR| O_NOCTTY);// | O_NOCTTY | O_NDELAY);
+  serial_port = open(device, O_RDWR | O_NOCTTY);// | O_NOCTTY | O_NDELAY);
 /*
   if (serial_port != -1)
   {
@@ -171,11 +171,21 @@ typedef struct
   
 } SetupMessageType; /* This should be 110 (112 for 32 bit alignment) bytes */
 
-char messageKinds[] = {0,1,2,3,4,5};
+
+typedef struct
+{
+  
+  MessageHeaderType header;
+  u_int_16          analog_values[MAX_ANALOG];
+  u_int_16          digital_values[MAX_DIGITAL];
+  
+} DataMessageType;
+
+
+char messageKinds[] = {0, 1, 2, 3, 4, 5};
 
 
 unsigned char inputMessage[BUFFER];
-
 
 
 void clearInputMessage()
@@ -185,6 +195,7 @@ void clearInputMessage()
     inputMessage[i] = 0;
   }
 }
+
 
 int main()
 {
@@ -200,6 +211,16 @@ int main()
                                    digital_in,digital_in,digital_in,digital_in,
                                    digital_in,digital_in,digital_in,digital_in,
                                    1000,125,4,0};
+  
+  DataMessageType dataMessage = {data_message,0,0,0,
+                                 0,0,0,0,0,0,0,0,
+                                 0,0,0,1,0,0,0,0,
+                                 0,0,0,0,0,0,0,0};
+
+  DataMessageType dataMessage1 = {data_message,0,0,0,
+                                  0,0,0,0,0,0,0,0,
+                                  0,0,0,0,0,0,0,1,
+                                  0,0,0,0,0,0,0,0};
 
   cout << setupMessage.sample_filter_length << endl;
 
@@ -249,6 +270,11 @@ int main()
     cout << endl;
     clearInputMessage();
     sleep(1);
+    
+    if (i == 15)
+      serialPort.writePort((char*)&dataMessage,56);
+    if (i == 30)
+      serialPort.writePort((char*)&dataMessage1,56);
 
   }
   cout << "All Done" << endl;

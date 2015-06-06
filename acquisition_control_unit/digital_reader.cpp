@@ -9,6 +9,7 @@
  */
 
 #include "digital_reader.h"
+#include <Arduino.h>
 
 
 DigitalPins::DigitalPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
@@ -19,8 +20,8 @@ DigitalPins::DigitalPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount
   outputs = new u_int_16[pinCount];
   values = new u_int_16[pinCount];
   
-  memset(outputs,0,sizeof(outputs));
-  memset(values,0,sizeof(values));
+  memset(outputs,0,sizeof(u_int_16)*desiredPinCount);
+  memset(values,0,sizeof(u_int_16)*desiredPinCount);
   
   int i;
   
