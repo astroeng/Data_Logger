@@ -15,6 +15,9 @@ AnalogPins::AnalogPins(SetupMessageType* inputMessage, u_int_8 desiredPinCount)
 {
   this->setupMessage = inputMessage;
   this->pinCount = desiredPinCount;
+  
+  values = new u_int_16[desiredPinCount];
+  outputs = new u_int_16[desiredPinCount];
 
   int i;
   for (i = 0; i < pinCount; i++)
@@ -64,11 +67,11 @@ void AnalogPins::write()
 
 void AnalogPins::readPins(DataMessageType* outputBuffer)
 {
-  memcpy(outputBuffer->analog_values, values, sizeof(values));
+  memcpy(outputBuffer->analog_values, values, sizeof(u_int_16)*pinCount);
 }
 
 void AnalogPins::writePins(DataMessageType* inputBuffer)
 {
-  memcpy(outputs, inputBuffer->analog_values, sizeof(outputs));
+  memcpy(outputs, inputBuffer->analog_values, sizeof(u_int_16)*pinCount);
 }
 

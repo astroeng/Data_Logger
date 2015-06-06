@@ -80,11 +80,11 @@ void DigitalPins::write()
 
 void DigitalPins::readPins(DataMessageType* outputBuffer)
 {
-  memcpy(outputBuffer->digital_values, values, sizeof(values));
+  memcpy(outputBuffer->digital_values, values, sizeof(u_int_16)*pinCount);
 }
 
 void DigitalPins::writePins(DataMessageType* inputBuffer)
 {
-  memcpy(outputs, inputBuffer->digital_values, sizeof(outputs));
+  memcpy(outputs, inputBuffer->digital_values, sizeof(u_int_16)*pinCount);
 }
 
